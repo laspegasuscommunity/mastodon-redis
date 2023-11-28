@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  mastodon-redis:
+    command: sh -c 'redis-server /data/redis.conf'
+    container_name: mastodon-redis
+    deploy:
+      resources:
+        limits:
+          memory: 500m
+          cpus: "0.5"
+      restart_policy:
+        condition: always
+        delay: 5s
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 5s
+      interval: 5s
+      retries: 10
+    env_file: redis.env
+    image: redis:alpine
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
+      traefik.enable: "false"
+    volumes:
+      - "./src/redis.conf:/data/redis.conf"
+      - "redis_data:/data"
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  default:
+    external: true
+    name: $NETWORK
